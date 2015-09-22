@@ -92,14 +92,14 @@ class BinaryNumber:
             return result
 
         elif isinstance( x, int ):
-            return ( self - self.__class__( x ) )[ 0 ]
+            return self - self.__class__( x )
         else: raise TypeError( 'One operand not a binary number' )
 
     def __and__( self, x ):
         if not isinstance( x, BinaryNumber ): raise TypeError( 'One operand not a binary number' )
         if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
 
-        result = self.__class__.from_digits( [ str( int( self[ i ] == x[ i ] ) ) for i in range( 0, self.WIDTH ) ] )
+        result = self.__class__.from_digits( [ '1' if self[ i ] == '1' and x[ i ] == '1' else '0' for i in range( 0, self.WIDTH ) ] )
         result.flags = '0', '0', result.is_negative(), result.is_zero()
 
         return result
@@ -142,8 +142,8 @@ class BinaryNumber:
         int_x = int( x )
         if int_x < 0: return self << ( -x )
 
-        result = self.__class__.from_digits( [ '0' ] * int_x + x [ : self.WIDTH - int_x ] if int_x < self.WIDTH else [ '0' ] * self.WIDTH )
-        result.flags = x[ self.WIDTH - int_x ] if int_x > 0 and int_x <= self.WIDTH else '0', '0', result.is_negative(), result.is_zero()
+        result = self.__class__.from_digits( [ '0' ] * int_x + x [ : -int_x ] if int_x < self.WIDTH else [ '0' ] * self.WIDTH )
+        result.flags = x[ -int_x ] if int_x > 0 and int_x <= self.WIDTH else '0', '0', result.is_negative(), result.is_zero()
 
         return result
 
@@ -155,26 +155,34 @@ class BinaryNumber:
         int_x = int( x )
         if int_x < 0: return self << ( -x )
 
-        result = self.__class__.from_digits( [ self[ 0 ] ] * int_x + self[ : self.WIDTH - int_x ] if int_x < self.WIDTH else [ self[ 0 ] ] * self.WIDTH )
-        result.flags = x[ self.WIDTH - int_x ] if int_x > 0 and int_x <= self.WIDTH else '0', '0', result.is_negative(), result.is_zero()
-
-        return result
-
-    def rotr( self, x ):
-        """Right rotation"""
-        if not isinstance( x, BinaryNumber ): raise TypeError( 'One operand not a binary number' )
-        if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
-
-
+        result = self.__class__.from_digits( [ self[ 0 ] ] * int_x + self[ : -int_x ] if int_x < self.WIDTH else [ self[ 0 ] ] * self.WIDTH )
+        result.flags = x[ -int_x ] if int_x > 0 and int_x <= self.WIDTH else '0', '0', result.is_negative(), result.is_zero()
 
         return result
 
     def rotl( self, x ):
+        """Right rotation"""
+        if not isinstance( x, BinaryNumber ): raise TypeError( 'One operand not a binary number' )
+        if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
+
+        int_x = int( x ) % 32
+        if int_x < 0: return self.rotr( -x )
+
+        result = self.__class__.from_digits( self[ int_y : ] + self[ : int_y ] )
+        result.flags = self[ int_x - 1 ], '0', self.is_negative(), self.is_zero()
+
+        return result
+
+    def rotr( self, x ):
         """Left rotation"""
         if not isinstance( x, BinaryNumber ): raise TypeError( 'One operand not a binary number' )
         if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
 
+        int_x = int( x ) % 32
+        if int_x < 0: return self.rotl( x )
 
+        result = self.__class__.from_digits( self[ -int_x : ] + self[ : -int_x ] )
+        result.flags = self[ -int_x ], '0', self.is_negative(), self.is_zero()
 
         return result
 
@@ -197,7 +205,7 @@ class BinaryNumber:
 
     def __floordiv__( self, x ):
         """Define // operator to concatenate two binary numbers into a larger one"""
-        pass
+        return BinaryNumber.from_digits( self.digits + x.digits )
 
     # Flag tests and operations
 
@@ -227,6 +235,25 @@ class BinaryNumber:
         return str( int( a != b ) )
 
 
+class Binary8( BinaryNumber ):
+    """8-bit binary number representation"""
+
+    def __init__( self, int_value ):
+        super().__init__( int_value, 8 )
+
+    @classmethod
+    def from_digits( cls, digit_list ):
+        if len( digit_list ) > 8:
+            raise ValueError( 'Too many digits given, cannot fit into 16 bits.' )
+
+        number = cls( 0 )
+        number.digits = [ '0' ] * ( 8 - len( digit_list ) ) + digit_list
+        return number
+
+    @classmethod
+    def __instancecheck__( self, other ):
+        return other.width == 8 if isinstance( other, BinaryNumber ) else False
+
 
 class Binary16( BinaryNumber ):
     """16-bit binary number representation"""
@@ -243,7 +270,9 @@ class Binary16( BinaryNumber ):
         number.digits = [ '0' ] * ( 16 - len( digit_list ) ) + digit_list
         return number
 
-
+    @classmethod
+    def __instancecheck__( self, other ):
+        return other.width == 16 if isinstance( other, BinaryNumber ) else False
 
 
 class Binary32( BinaryNumber ):
@@ -259,3 +288,8 @@ class Binary32( BinaryNumber ):
         number = cls( 0 )
         number.digits = [ '0' ] * ( 32 - len( digit_list ) ) + digit_list
         return number
+
+
+    @classmethod
+    def __instancecheck__( self, other ):
+        return other.width == 32 if isinstance( other, BinaryNumber ) else False

@@ -1,5 +1,5 @@
-from simulator import Simulator, SimulatorState
-from utils.binary import Binary32
+from simulators.simulator import *
+from utils.binary import *
 
 class FRISCSimulator( Simulator ):
     """FRISC processor simulator, extending abstract class Simulator
@@ -10,16 +10,18 @@ class FRISCSimulator( Simulator ):
         self.config[ 'MEMORY_SIZE_BYTES' ] = memory_size
         self.config[ 'MEMORY_SIZE_WORDS' ] = memory_size // self.config[ 'WORD_SIZE_BYTES' ]
 
-        self.memory = [ Binary32( 0 ) ] * memory_size   # TODO: either keep memory in WORDS or split Binary32's into Binary8's (snd option seems better, more realistic)
+        self.init()
+
+    def init( self ):
+        self.memory = [ Binary8( 0 ) ] * self.config[ 'MEMORY_SIZE_BYTES' ]
         self.registers = { name : Binary32( 0 ) for name in [ 'PC', 'SR', 'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7' ] }
 
         self.state = SimulatorState.INITIALIZED
 
-    def init( self ):
-        pass
-
-    def load( self, program ):
-        pass
+    def load( self, p_file_name ):
+        with open( p_file_name, "r" ) as p_file:
+            lines = [ ( line[ :21 ], line[ 21: ] ) for line in p_file if line[ :21 ].rstrip() ]
+            print( lines )
 
     def reset( self ):
         pass
@@ -34,6 +36,9 @@ class FRISCSimulator( Simulator ):
         pass
 
     def stop( self ):
+        pass
+
+    def toggle_breakpoint( self, line_number ):
         pass
 
     def execute_instruction( self, instruction ):
