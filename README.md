@@ -33,6 +33,10 @@
 - Breakpoints and pause/stop state inside simulator, no separate state kept in view
 - Custom exceptions, better error messages
 
+- **UI**:
+    - Place Editor/Simulator tabs into the header bar
+    - Use GtkInfoBar somewhere, instead of console perhaps?
+
 ## Most important files
 
 ### Application.py

@@ -12,6 +12,8 @@ class BinaryNumber:
         self.digits = list( ( '{:0>' + str( width ) + 'b}' ).format( abs( int_value ) ) )
         self.flags = ()
 
+        if len( self.digits ) != self.WIDTH: raise ValueError( 'Integer too large to fit into a given number of bits.' )
+
         if int_value < 0: self.digits = (-self).digits
 
 
@@ -31,6 +33,11 @@ class BinaryNumber:
         return number
 
     @classmethod
+    def from_hex( cls, hex_string, width ):
+        number = int( hex_string, 16 )
+        return cls( number, width )
+
+    @classmethod
     def extend( cls, x, width ):
         return cls( '0'*( width - len( str( x ) ) ) + str( x ), width )
 
@@ -38,7 +45,8 @@ class BinaryNumber:
         return ''.join( self.digits )
 
     def to_hex_string( self ):
-        return ( '{:0>' + str( self.WIDTH // 4 ) + 'X}' ).format( int( self ) )
+        return ( '{:0>' + str( self.WIDTH // 4 ) + 'X}' ).format(
+            int( BinaryNumber( 0, 1 ) // self ) )     # Adding a zero bit in front to avoid negative results
 
     def to_pretty_hex_string( self ):
         xstring = self.to_hex_string()
@@ -48,7 +56,7 @@ class BinaryNumber:
         return self.to_binary_string()
 
     def __repr__( self ):
-        return str( self.__class__.__name__ ) + ': ' + str( self ) + ' = ' + str( int( self ) )
+        return self.__class__.__name__ + '_' + str( self.WIDTH ) + ': ' + str( self ) + ' = ' + str( int( self ) )
 
     # Arithmetic and logical operations
 
@@ -75,7 +83,7 @@ class BinaryNumber:
             return result
 
         elif isinstance( x, int ):
-            return self + self.__class__( x )
+            return self + self.__class__( x, self.WIDTH )
         else: raise TypeError( 'One operand not a binary number' )
 
     def __sub__( self, x ):    # TODO: sub with carry?
@@ -92,7 +100,7 @@ class BinaryNumber:
             return result
 
         elif isinstance( x, int ):
-            return self - self.__class__( x )
+            return self - self.__class__( x, self.WIDTH )
         else: raise TypeError( 'One operand not a binary number' )
 
     def __and__( self, x ):
@@ -209,6 +217,9 @@ class BinaryNumber:
 
     # Flag tests and operations
 
+    def get_flags( self ):
+        return self.flags[ 0 ], self.flags[ 1 ], '1' if self.flags[ 2 ] else '0', '1' if self.flags[ 3 ] else '0'
+
     def clear_flags( self ):
         self.flags = ()
 
@@ -235,61 +246,72 @@ class BinaryNumber:
         return str( int( a != b ) )
 
 
+
 class Binary8( BinaryNumber ):
     """8-bit binary number representation"""
 
-    def __init__( self, int_value ):
+    def __init__( self, int_value, width = 8 ):
         super().__init__( int_value, 8 )
 
     @classmethod
-    def from_digits( cls, digit_list ):
-        if len( digit_list ) > 8:
+    def from_digits( cls, digits_list, signed = False ):
+        if len( digits_list ) > 8:
             raise ValueError( 'Too many digits given, cannot fit into 16 bits.' )
 
         number = cls( 0 )
-        number.digits = [ '0' ] * ( 8 - len( digit_list ) ) + digit_list
+        number.digits = ( [ digits_list[ 0 ] ] if signed else [ '0' ] ) * ( 8 - len( digits_list ) ) + digits_list
         return number
 
     @classmethod
+    def from_hex( cls, hex_string ):
+        return BinaryNumber.from_hex( hex_string, 8 )
+
+    @classmethod
     def __instancecheck__( self, other ):
-        return other.width == 8 if isinstance( other, BinaryNumber ) else False
+        return other.WIDTH == 8 if isinstance( other, BinaryNumber ) else False
+
 
 
 class Binary16( BinaryNumber ):
     """16-bit binary number representation"""
 
-    def __init__( self, int_value ):
+    def __init__( self, int_value, width = 16 ):
         super().__init__( int_value, 16 )
 
     @classmethod
-    def from_digits( cls, digit_list ):
-        if len( digit_list ) > 16:
+    def from_digits( cls, digits_list, signed = False ):
+        if len( digits_list ) > 16:
             raise ValueError( 'Too many digits given, cannot fit into 16 bits.' )
 
         number = cls( 0 )
-        number.digits = [ '0' ] * ( 16 - len( digit_list ) ) + digit_list
+        number.digits =  ( [ digits_list[ 0 ] ] if signed else [ '0' ] ) * ( 16 - len( digits_list ) ) + digits_list
         return number
+
+
+    @classmethod
+    def from_hex( cls, hex_string ):
+        return BinaryNumber.from_hex( hex_string, 16 )
 
     @classmethod
     def __instancecheck__( self, other ):
-        return other.width == 16 if isinstance( other, BinaryNumber ) else False
+        return other.WIDTH == 16 if isinstance( other, BinaryNumber ) else False
+
 
 
 class Binary32( BinaryNumber ):
     """32-bit binary number representation"""
 
-    def __init__( self, int_value ):
+    def __init__( self, int_value, width = 32 ):
         super().__init__( int_value, 32 )
 
     @classmethod
-    def from_digits( cls, digit_list ):
-        if len( digit_list ) > 32:
+    def from_digits( cls, digits_list, signed = False ):
+        if len( digits_list ) > 32:
             raise ValueError( 'Too many digits given, cannot fit into 32 bits.' )
         number = cls( 0 )
-        number.digits = [ '0' ] * ( 32 - len( digit_list ) ) + digit_list
+        number.digits =  ( [ digits_list[ 0 ] ] if signed else [ '0' ] ) * ( 32 - len( digits_list ) ) + digits_list
         return number
-
 
     @classmethod
     def __instancecheck__( self, other ):
-        return other.width == 32 if isinstance( other, BinaryNumber ) else False
+        return other.WIDTH == 32 if isinstance( other, BinaryNumber ) else False
