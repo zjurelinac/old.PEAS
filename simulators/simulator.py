@@ -46,6 +46,9 @@ class Simulator( metaclass = ABCMeta ):
 
     # TODO:: Standardize .p file format
     def load( self, p_file_name ):
+        if self.state != SimulatorState.INITIALIZED:
+            raise RuntimeError( 'Cannot load a program, processor in invalid state' )
+
         with open( p_file_name, "r" ) as p_file:
             address_end_pos = 2*self.config[ 'ADDRESS_SIZE_BYTES' ]
             annotation_start_pos = address_end_pos + 3*self.config[ 'WORD_SIZE_BYTES' ] + 1
@@ -71,20 +74,36 @@ class Simulator( metaclass = ABCMeta ):
 
             self.state = SimulatorState.LOADED
 
-    @abstractmethod
     def run( self ):
-        pass
+        if self.state not in ( SimulatorState.LOADED, SimulatorState.PAUSED ):
+            raise RuntimeError( 'Cannot run, processor in invalid state' )
 
-    @abstractmethod
+        self.state = SimulatorState.RUNNING
+        while self.state == SimulatorState.RUNNING:
+            self.execute_single()
+
     def run_step( self ):
-        pass
+        if self.state not in ( SimulatorState.LOADED, SimulatorState.PAUSED ):
+            raise RuntimeError( 'Cannot run a step, processor in invalid state' )
 
-    @abstractmethod
+        self.execute_single()
+
+        if self.state != SimulatorState.TERMINATED: self.state = SimulatorState.PAUSED
+
     def pause( self ):
+        self.state = SimulatorState.PAUSED
+
+    def stop( self ):
+        self.state = SimulatorState.TERMINATED
+
+    # Execution procedures
+
+    @abstractmethod
+    def execute_single( self ):
         pass
 
     @abstractmethod
-    def stop( self ):
+    def execute_instruction( self, instruction ):
         pass
 
     # Processor memory functions
@@ -94,7 +113,7 @@ class Simulator( metaclass = ABCMeta ):
 
         Modify if neccessary for a specific processor, say if addressing in words,
         not bytes, or if address space is different"""
-        return address >= 0 and address <= self.config[ 'MEMORY_SIZE_BYTES' ]
+        return int( address ) >= 0 and int( address ) <= self.config[ 'MEMORY_SIZE_BYTES' ]
 
 
     def get_word_from_memory( self, address ):

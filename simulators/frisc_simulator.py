@@ -4,7 +4,7 @@ from utils.binary import *
 class FRISCSimulator( Simulator ):
     """FRISC processor simulator, extending abstract class Simulator
 
-    """
+    IO units are not supported yet."""
 
     def __init__( self, memory_size ):
         self.config[ 'MEMORY_SIZE_BYTES' ] = memory_size
@@ -18,20 +18,9 @@ class FRISCSimulator( Simulator ):
         self.memory = [ Binary8( 0 ) ] * self.config[ 'MEMORY_SIZE_BYTES' ]
         self.annotations = [ '' ] * self.config[ 'MEMORY_SIZE_BYTES' ]
         self.registers = { name : Binary32( 0 ) for name in [ 'PC', 'SR', 'R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7' ] }
+        self.flags = { 'IIF' : True }
 
         self.state = SimulatorState.INITIALIZED
-
-    def run( self ):
-        pass
-
-    def run_step( self ):
-        pass
-
-    def pause( self ):
-        pass
-
-    def stop( self ):
-        pass
 
     # Execution procedures
 
@@ -51,31 +40,79 @@ class FRISCSimulator( Simulator ):
 
         immediate = Binary32.from_digits( instruction[ 12: ], True )
 
+        operand1 = self.registers[ source1_register ]
+        operand2 = self.registers[ source2_register ] if funct == '0' else immediate
+
         condition = instruction[ 6:10 ]
         return_type = ''.join( instruction[ 30: ] )
 
         if opcode == '00000':
-            if source1_register == 'R0':
-                value = immediate if funct == '1' else self.registers[ source2_register ]
+            if source1_register != 'R0':
+                if instruction[ 10 ] == '1': destination_register = 'SR'
+                if instruction[ 13 ] == '1': operand2 = self.registers[ 'SR' ]
+
+            self.registers[ destination_register ] = operand2
 
         elif opcode[ 0 ] == '0':
-            operand1 = self.registers[ source1_register ]
-            operand2 = self.registers[ source2_register ] if funct == '0' else immediate
-
-            result = self._alu_operations[ opcode ]( operand1, operand2 )
-            if opcode != '01101': self.registers[ destination_register ] = result   # If CMP command, don't save changes
-            self.set_status_flags( result.get_flags() )
+            try:
+                result = self._alu_operations[ opcode ]( operand1, operand2 )
+                if opcode != '01101': self.registers[ destination_register ] = result   # If CMP command, don't save changes
+                self.set_status_flags( result.get_flags() )
+            except KeyError:
+                raise ValueError( 'Unknown ALU operation' )
 
         elif opcode[ :2 ] == '10':
+            address = immediate if funct == '0' else operand1 + immediate
 
+            if opcode == '10000':   self.registers[ destination_register ] = self.pop_from_stack()
+            elif opcode == '10001': self.push_to_stack( self.registers[ destination_register ] )
+            elif opcode == '10010': self.registers[ destination_register ] = self.get_byte_from_memory( address )
+            elif opcode == '10011': self.set_byte_in_memory( address,
+                self.registers[ destination_register ][ 24: ] )
+            elif opcode == '10100': self.registers[ destination_register ] = self.get_halfword_from_memory(
+                self._round_to_halfword( address ) )
+            elif opcode == '10101': self.set_halfword_in_memory( self._round_to_halfword( address ),
+                self.registers[ destination_register ][ 16: ] )
+            elif opcode == '10110': self.registers[ destination_register ] = self.get_word_from_memory(
+                self._round_to_word( address ) )
+            elif opcode == '10111': self.set_word_in_memory( self._round_to_word( address ),
+                self.registers[ destination_register ] )
+            else: raise ValueError( 'Unknown memory operation, cannot execute' )
+
+        elif opcode[ :2 ] == '11' and self._conditions( self.get_status_flags() ):
+
+            if opcode == '11000': self.registers[ 'PC' ] = operand2
+            elif opcode == '11001':
+                self.push_on_stack( self.registers[ 'PC' ] )
+                self.registers[ 'PC' ] = operand2
+            elif opcode == '11010': self.registers[ 'PC' ] += immediate
+            elif opcode == '11011':
+                self.registers[ 'PC' ] = self.pop_from_stack()
+                if return_type == '01': self.registers[ 'SR' ][ 27 ] = '1'
+            elif return_type == '11': self.flags[ 'IIF' ] = True
+            elif opcode == '11111': self.state = SimulatorState.TERMINATED
+
+        else: raise ValueError( 'Unknown instruction, cannot execute')
 
 
     def set_status_flags( self, flags ):
         self.registers[ 'SR' ][ 28: ] = flags
 
-    # Memory methods
-    # None yet
+    def get_status_flags( self ):
+        return reversed( self.registers[ 'SR' ][ 28: ] )
 
+    # Memory methods
+
+    def push_on_stack( self, word ):
+        self.registers[ 'R7' ] -= 4
+        self.set_word_in_memory( self.registers[ 'R7' ], word )
+
+    def pop_from_stack( self ):
+        word = self.get_word_from_memory( self.registers[ 'R7' ] )
+        self.registers[ 'R7' ] += 4
+        return word
+
+    # Auxilliary functions and data
 
     _alu_operations = {
         '00001'     : lambda x, y: x | y,
@@ -111,8 +148,16 @@ class FRISCSimulator( Simulator ):
         '1110'      : lambda fs : match_binary_mask( '0x00', fs ) or match_binary_mask( '1x10', fs )
     }
 
-    def _register( reg_code ):
+    def _register( self, reg_code ):
         return 'R{}'.format( int( reg_code, 2 ) )
 
     def _get_carry( self ):
         return self.registers[ 'SR' ][ 30 ]
+
+    def _round_to_halfword( self, address ):
+        address[ -1 ] = '0'
+        return address
+
+    def _round_to_word( self, address ):
+        address[ -1 ] = address[ -2 ] = '0'
+        return address
