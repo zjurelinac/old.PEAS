@@ -1,13 +1,17 @@
 import re
 
 from abc import ABCMeta, abstractmethod
+from utils.helpers import tail
+
+# TODO: Take care about reuse of items - later uses currently can override previous ones
 
 class Item( metaclass = ABCMeta ):
-    """Item base class, extend to define other items"""
+    """A base class for all Items out of which a grammar is constructed
 
+    Call method expects a list of arguments, and upon successful parsing
+    should return ( Item, remains ), but if it fails, raise a SyntaxError"""
     @abstractmethod
-    def __call__( self, word ):
-        pass
+    def __call__( self, arg_list ): pass
 
     def __str__( self ):
         return self.__class__.__name__
@@ -16,58 +20,133 @@ class Item( metaclass = ABCMeta ):
         return str( self )
 
 
-class RegexItem( Item ):
-    """An Item that matches a given regex"""
-    regex = ''
-
+class Token( Item, metaclass = ABCMeta ):
+    """A terminating symbol of a grammar"""
     def __init__( self ):
-        self.regex = re.compile( self.regex )
         self.content = None
 
-    def __call__( self, string ):
-        if re.fullmatch( self.regex, string ) is not None:
-            self.content = string
-            return self
-        else: raise SyntaxError( string + ' is not a ' + self.__class__.__name__ + ' item' )
+    def __call__( self, arg_list ):
+        if not arg_list: raise SyntaxError( '{}: nothing to parse'.format( self.__class__.__name__ ) )
+        if self.matches( arg_list[ 0 ] ):
+            self.content = arg_list[ 0 ]
+            return self, tail( arg_list )
+        else: raise SyntaxError( '{} is not a {}'.format( arg_list[ 0 ], self.__class__.__name__ ) )
 
     def __str__( self ):
-        return self.__class__.__name__ + ': ' + self.content
+        return '{}: {}'.format( self.__class__.__name__, self.content )
 
-class VariantsItem:
-    """An Item that fits one of a given list of simpler Items"""
-    variants = []
-
-    def __call__( self, string ):
-        for item in self.variants:
-            try: return item( string )
-            except Exception: pass
-        raise SyntaxError( str( string ) + ' is not a ' + self.__class__.__name__ + ' item' )
+    @abstractmethod
+    def matches( self, word ):
+        pass
 
 
-class SequenceItem( Item ):
-    """An Item that fits all Items in a given list in that order"""
-    sequence = []
+class RToken( Token ):
+    """A token defined by a given regex"""
 
-    def __call__( self, _list ):
-        if len( self.sequence ) == len( _list ):
-            self.content = []
-            for i in range( 0, len( self.sequence ) ):
-                self.content.append( self.sequence[ i ]( _list[ i ] ) )
-            return self
-        else: raise SyntaxError( str( _list ) + 'is not a ' + self.__class__.__name__ + ' item'  )
+    def __init__( self, regex = '' ):
+        self.regex = re.compile( regex )
+        self.content = ''
 
-    def __str__( self ):
-        return self.__class__.__name__ + ': ' + str( self.content )
+    def matches( self, word ):
+        return re.fullmatch( self.regex, word ) is not None
 
-class Hex( RegexItem ):     regex = '(\+|-)?[0-9][0-9A-F]*'
-class Dec( RegexItem ):     regex = '(\+|-)?[0-9]+'
-class Oct( RegexItem ):     regex = '(\+|-)?[0-7+]'
-class Bin( RegexItem ):     regex = '(\+|-)?[0-1]+'
 
-class Symbol( RegexItem ):
-    def __init__( self, symbol ):
-        self.regex = re.escape( symbol )
-        super().__init__()
+class Word( RToken ):
+    """A single word token"""
+    def __init__( self, word ):
+        super().__init__( re.escape( word ) )
 
-class Word( Symbol ):
+
+class Symbol( Word ):
+    """A single symbol token"""
     pass
+
+
+class Combinator( Item ):
+    """A combination of tokens"""
+    def __init__( self, *args ):
+        self.items = args
+        self.content = ''
+
+    def __str__( self ):
+        return '{}: [{}]'.format( self.__class__.__name__, ', '.join( [ str( i ) for i in self.items ] ) )
+
+
+class Or( Combinator ):
+    """OR combinator, attempts to match any of a given list of Items to the input"""
+    def __call__( self, arg_list ):
+        for item in self.items:
+            try:
+                return item( arg_list )
+            except Exception:
+                pass
+        raise SyntaxError( '{} is not a {}'.format( arg_list[ 0 ], str( self ) ) )
+
+
+class Sequence( Combinator ):
+    """List combinator, attempts to match a sequence of given items"""
+    def __call__( self, arg_list ):
+        returns = []
+        for item in self.items:
+            ret, arg_list = item( arg_list )
+            if isinstance( ret, list ):
+                returns += ret
+            else:
+                returns.append( ret )
+        return returns, arg_list
+
+
+class PSequence( Combinator ):
+    """Same as Sequence above, only stores matched elements into itself"""
+    def __call__( self, arg_list ):
+        returns = []
+        for item in self.items:
+            ret, arg_list = item( arg_list )
+            if isinstance( ret, list ):
+                returns += ret
+            else:
+                returns.append( ret )
+        self.content = returns
+        return self, arg_list
+
+    def purge( self ):
+        self.content = [ i for i in self.content if i ]
+        return self
+
+    def __str__( self ):
+        return '{}: [{}]'.format( self.__class__.__name__, ', '.join( [ str( i ) for i in self.content ] ) )
+
+
+class Modifier( Item ):
+    """A modifier of a basic item"""
+    def __init__( self, item ):
+        self.item = item
+
+    def __str__( self ):
+        return '{}: {}'.format( self.__class__.__name__, self.item )
+
+
+class Possible( Modifier ):
+    """Attempts to match an item, but failure to do so is not fatal (no exception,
+    returns ( None, arg_list ) )"""
+    def __call__( self, arg_list ):
+        try:
+            return self.item( arg_list )
+        except Exception:
+            return ( None, arg_list )
+
+
+class Repeatable( Modifier ):
+    """Match as many instances of item in a row as possible; cannot fail"""
+    def __call__( self, arg_list ):
+        returns = []
+        while True:
+            try:
+                ret, arg_list = self.item( arg_list )
+                if isinstance( ret, list ):
+                    returns += ret
+                else:
+                    returns.append( ret )
+            except Exception as e:
+                break
+        return returns, arg_list

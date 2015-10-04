@@ -55,7 +55,7 @@ class FRISCSimulator( Simulator ):
 
         elif opcode[ 0 ] == '0':
             try:
-                result = self._alu_operations[ opcode ]( operand1, operand2 )
+                result = self._alu_operations[ opcode ]( operand1, operand2, self._get_carry() )
                 if opcode != '01101': self.registers[ destination_register ] = result   # If CMP command, don't save changes
                 self.set_status_flags( result.get_flags() )
             except KeyError:
@@ -89,7 +89,7 @@ class FRISCSimulator( Simulator ):
             elif opcode == '11011':
                 self.registers[ 'PC' ] = self.pop_from_stack()
                 if return_type == '01': self.registers[ 'SR' ][ 27 ] = '1'
-            elif return_type == '11': self.flags[ 'IIF' ] = True
+                elif return_type == '11': self.flags[ 'IIF' ] = True
             elif opcode == '11111': self.state = SimulatorState.TERMINATED
 
         else: raise ValueError( 'Unknown instruction, cannot execute')
@@ -115,19 +115,19 @@ class FRISCSimulator( Simulator ):
     # Auxilliary functions and data
 
     _alu_operations = {
-        '00001'     : lambda x, y: x | y,
-        '00010'     : lambda x, y: x & y,
-        '00011'     : lambda x, y: x ^ y,
-        '00100'     : lambda x, y: x + y,
+        '00001'     : lambda x, y, c: x | y,
+        '00010'     : lambda x, y, c: x & y,
+        '00011'     : lambda x, y, c: x ^ y,
+        '00100'     : lambda x, y, c: x + y,
         '00101'     : lambda x, y, c: x.adc( y, c ),
-        '00110'     : lambda x, y: x - y,
+        '00110'     : lambda x, y, c: x - y,
         '00111'     : lambda x, y, c: x.sbc( y, c ),
-        '01000'     : lambda x, y: x.rotl( y ),
-        '01001'     : lambda x, y: x.rotr( y ),
-        '01010'     : lambda x, y: x << y,
-        '01011'     : lambda x, y: x >> y,
-        '01100'     : lambda x, y: x.ashr( y ),
-        '01101'     : lambda x, y: x - y
+        '01000'     : lambda x, y, c: x.rotl( y ),
+        '01001'     : lambda x, y, c: x.rotr( y ),
+        '01010'     : lambda x, y, c: x << y,
+        '01011'     : lambda x, y, c: x >> y,
+        '01100'     : lambda x, y, c: x.ashr( y ),
+        '01101'     : lambda x, y, c: x - y
     }
 
     _conditions = {                                  #ncvz
