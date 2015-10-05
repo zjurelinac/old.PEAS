@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+
+ This file is part of GtkSourceView
+
+ Authors: John Doe
+
+ GtkSourceView is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ GtkSourceView is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
+-->
+
+<language id="frisc" _name="FRISC" version="2.0" _section="Sources">
+	<metadata>
+		<property name="mimetypes">text/plain;application/x-archive</property>
+		<property name="globs">*.a;*.asm</property>
+  	</metadata>
+
+	<styles>
+		<style id="comment"           _name="Comment"               map-to="def:comment"/>
+		<style id="common-defines"    _name="Common Defines"        map-to="def:constant"/>
+		<style id="keyword"           _name="Keyword"               map-to="def:keyword"/>
+		<style id="operator"          _name="Operator"              map-to="def:operator"/>
+		<style id="type"              _name="Data Type"             map-to="def:type"/>
+		<style id="decimal"           _name="Decimal number"        map-to="def:decimal"/>
+		<style id="octal"             _name="Octal number"          map-to="def:decimal"/>
+		<style id="hexadecimal"       _name="Hexadecimal number"    map-to="def:decimal"/>
+	</styles>
+
+	<definitions>
+
+		<context id="hexadecimal" style-ref="hexadecimal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    0[xX][a-fA-F0-9]+[uUlL]*
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<context id="octal" style-ref="octal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    0[0-7]+[uUlL]*
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<context id="decimal" style-ref="decimal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    (0|[1-9][0-9]*)[uUlL]*
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<context id="operators" style-ref="operator">
+		  <keyword>sizeof</keyword>
+		</context>
+
+		<!-- Real FRISC stuff -->
+		<context id="frisc-comment" style-ref="comment" end-at-line-end="true">
+			<start>;</start>
+			<end>\n</end>
+		</context>
+
+		<context id="keywords" style-ref="keyword">		  
+			<keyword>ADD</keyword>
+			<keyword>AND</keyword>
+			<keyword>OR</keyword>
+			<keyword>XOR</keyword>
+			<keyword>SUB</keyword>
+			<keyword>ADC</keyword>
+			<keyword>SBC</keyword>
+			<keyword>SHL</keyword>
+			<keyword>SHR</keyword>
+			<keyword>ASHR</keyword>
+			<keyword>ROTL</keyword>
+			<keyword>ROTR</keyword>
+			<keyword>CMP</keyword>
+			<keyword>MOVE</keyword>
+			<keyword>LOAD(B|H)?</keyword>
+			<keyword>STORE(B|H)?</keyword>
+			<keyword>PUSH</keyword>
+			<keyword>POP</keyword>
+			<keyword>JP</keyword>
+			<keyword>JR</keyword>
+			<keyword>CALL</keyword>
+			<keyword>RET(I|N)?</keyword>
+			<keyword>HALT</keyword>
+		</context>
+
+
+		<context id="types" style-ref="type">
+		  	<keyword>ORG</keyword>
+		  	<keyword>EQU</keyword>
+		  	<keyword>D(S|B|H|W)</keyword>
+		</context>
+
+		<context id="common-defines" style-ref="common-defines">
+			<keyword>R[0-7]</keyword>
+			<keyword>SP</keyword>
+			<keyword>SR</keyword>
+		</context>
+
+		<!--Main context-->
+		<context id="frisc" class="no-spell-check">
+		  <include>
+		    <context ref="frisc-comment"/>
+		    <context ref="hexadecimal"/>
+		    <context ref="octal"/>
+		    <context ref="decimal"/>
+		    <context ref="keywords"/>
+		    <context ref="operators"/>
+		    <context ref="types"/>
+		    <context ref="common-defines"/>
+		  </include>
+		</context>
+
+  	</definitions>
+</language>

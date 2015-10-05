@@ -20,6 +20,7 @@ class FRISCAssembler( Assembler ):
         with open( file_name, 'r' ) as file:
 
             current_line_number = 0
+            file_line_number = 1
             preprocessed_lines = []
 
             for line in file:
@@ -36,7 +37,12 @@ class FRISCAssembler( Assembler ):
                     is_equ = False
 
                     if not blank:
-                        instruction = parse_instruction( tokens )
+                        try:
+                            instruction = parse_instruction( tokens )
+                        except SyntaxError:
+                            print( 'Syntax error in line ' + str( file_line_number ) )
+                            return None, False
+
                         parts = instruction.contents
 
                         preprocessed_line[ 'instruction' ] = instruction
@@ -72,6 +78,7 @@ class FRISCAssembler( Assembler ):
                     preprocessed_line[ 'line_number' ] = -1
 
                 preprocessed_lines.append( preprocessed_line )
+                file_line_number += 1
 
             file_path = os.path.abspath( file_name )
             base_name = file_path.rsplit( '.', maxsplit = 1 )[ 0 ]
