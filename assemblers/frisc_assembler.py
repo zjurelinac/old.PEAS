@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 
@@ -22,7 +23,7 @@ class FRISCAssembler( Assembler ):
             preprocessed_lines = []
 
             for line in file:
-                preprocessed_line = { 'original' : line }
+                preprocessed_line = { 'original' : line[ :-1 ] }
                 no_comments = line.upper().split( FRISCAssembler.config[ 'LINE_COMMENT_START' ], maxsplit = 1 )[ 0 ]
 
                 if len( no_comments ) > 0:
@@ -30,28 +31,71 @@ class FRISCAssembler( Assembler ):
 
                     tokens = split_on_tokens( instruction_part )
 
-                    if len( tokens ) > 0:
-                        instruction_parser = Instruction()
-                        instruction = instruction_parser( tokens )
+                    blank = len( tokens ) == 0
+                    pseudo = True
+                    is_equ = False
 
-                        print( instruction )
+                    if not blank:
+                        instruction = parse_instruction( tokens )
+                        parts = instruction.contents
 
-                        if isinstance( instruction, OrgInstruction ):
-                            pass#print( int( instruction.content[ 1 ] ) )
-                        elif isinstance( instruction, DDInstruction ):
-                            pass
-                        elif isinstance( instruction, DSInstruction ):
-                            pass
+                        preprocessed_line[ 'instruction' ] = instruction
+
+                        if isinstance( instruction, OrgPseudoInstr ):
+                            next_line_number = get_int_from_tokens( parts[ 1: ] )
+
+                        elif isinstance( instruction, EquPseudoInstr ):
+                            is_equ = True
+                            constants[ label ] = get_int_from_tokens( parts[ 1: ] )
+
+                        elif isinstance( instruction, SpacePseudoInstr ):
+                            next_line_number = current_line_number + FRISCAssembler._round_to_word( get_int_from_tokens( parts[ 1: ] ) )
+
+                        elif isinstance( instruction, DataPseudoInstr ):
+                            next_line_number = current_line_number + get_data_size( instruction ) * get_data_length( instruction )
+                            pseudo = False
+
                         else:
-                            pass
+                            pseudo = False
+                            next_line_number = current_line_number + 4
 
-                    preprocessed_line[ 'empty' ] = len( instruction_part ) > 0
-                    preprocessed_line[ 'label' ] = label
+                    preprocessed_line[ 'empty' ] = blank or pseudo
                     preprocessed_line[ 'line_number' ] = current_line_number
+                    preprocessed_line[ 'label' ] = label
 
-                    constants[ label ] = current_line_number
-                    current_line_number += 4
+                    if label and not is_equ: constants[ label ] = current_line_number
+
+                    current_line_number = next_line_number
 
                 else:
                     preprocessed_line[ 'empty' ] = True
                     preprocessed_line[ 'line_number' ] = -1
+
+                preprocessed_lines.append( preprocessed_line )
+
+            file_path = os.path.abspath( file_name )
+            base_name = file_path.rsplit( '.', maxsplit = 1 )[ 0 ]
+
+            with open( base_name + '.p', 'w' ) as pfile:
+                for line in preprocessed_lines:
+
+                    if not line[ 'empty' ]:
+                        line_number = Binary32( line[ 'line_number' ] ).to_hex_string()
+                        encoded = line[ 'instruction' ].encode( constants, line[ 'line_number' ] )
+                        machine_code = [ FRISCAssembler._rearrange( Binary32.from_digits( list( enc ) ).to_pretty_hex_string() ) for enc in encoded ]
+                    else:
+                        line_number = ''
+                        encoded = [ '' ]
+                        machine_code = [ '' ]
+
+                    pfile.write( line_number.ljust( 10 ) + machine_code[ 0 ].ljust( 13 ) + line[ 'original' ] + '\n' )
+
+                    for mc in tail( machine_code ):
+                        pfile.write( mc.rjust( 21 ) + '\n' )
+
+
+    def _rearrange( string ):
+        return ' '.join( reversed( string.split( ' ' ) ) )
+
+    def _round_to_word( number ):
+        return ( number // 4 + 1 )*4 if number % 4 != 0 else number
