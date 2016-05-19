@@ -67,15 +67,15 @@ class BinaryNumber:
 
     def __neg__( self ):
         """Two's complement of a given number"""
-        return self.__class__( 2 ** self.WIDTH - int( self ), self.WIDTH ) if not self.is_zero() else self
+        return self.__class__( 2 ** self.WIDTH - int( self ) ) if not self.is_zero() else self
 
-    def __add__( self, x, c = '0' ):
+    def __add__( self, x ):     # TODO: add with carry?
         if isinstance( x, BinaryNumber ):
             if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
 
             carries, sums = [ '0' ] * self.WIDTH, [ '0' ] * self.WIDTH
             for i in range( self.WIDTH-1, -1, -1 ):
-                sums[ i ], carries[ i ] = BinaryNumber._add2( self[ i ], x[ i ], carries[ i+1 ] if i < self.WIDTH-1 else c )
+                sums[ i ], carries[ i ] = BinaryNumber._add2( self[ i ], x[ i ], carries[ i+1 ] if i < self.WIDTH-1 else '0' )
 
             result = self.__class__.from_digits( sums )
             result.flags = carries[ 0 ], BinaryNumber._xor2( carries[ 0 ], carries[ 1 ] ), result.is_negative(), result.is_zero()
@@ -86,13 +86,13 @@ class BinaryNumber:
             return self + self.__class__( x, self.WIDTH )
         else: raise TypeError( 'One operand not a binary number' )
 
-    def __sub__( self, x, c = '0' ):
+    def __sub__( self, x ):    # TODO: sub with carry?
         if isinstance( x, BinaryNumber ):
             if len( self ) != len( x ): raise TypeError( 'Incompatible binary numbers - different lengths' )
 
             carries, sums = [ '0' ] * self.WIDTH, [ '0' ] * self.WIDTH
             for i in range( self.WIDTH-1, -1, -1 ):
-                sums[ i ], carries[ i ] = BinaryNumber._sub2( self[ i ], x[ i ], carries[ i+1 ] if i < self.WIDTH-1 else c )
+                sums[ i ], carries[ i ] = BinaryNumber._sub2( self[ i ], x[ i ], carries[ i+1 ] if i < self.WIDTH-1 else '0' )
 
             result = self.__class__.from_digits( sums )
             result.flags = carries[ 0 ], BinaryNumber._xor2( carries[ 0 ], carries[ 1 ] ), result.is_negative(), result.is_zero()
@@ -195,10 +195,10 @@ class BinaryNumber:
         return result
 
     def adc( self, x, c ):
-        return self.__add__( x, c )
+        pass
 
     def sbc( self, x, c ):
-        return self.__sub__( x, c )
+        pass
 
     # List operators
 
