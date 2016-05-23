@@ -1,0 +1,51 @@
+#application-window {
+  font-family: sans; }
+
+GtkHeaderBar {
+  background: #FF5722;
+  border-radius: 0;
+  border-bottom: none;
+  padding: 12px; }
+
+GtkStackSwitcher GtkButton {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  font-size: 10px;
+  outline: none;
+  padding: 0 4px;
+  text-shadow: none;
+  background: #FF5722;
+  border-radius: 0;
+  font-family: sans;
+  font-size: 9px;
+  color: #fff;
+  padding: 8px 8px; }
+  GtkStackSwitcher GtkButton:active {
+    background: #D32F2F;
+    font-weight: bold; }
+
+/* GtkButton
+ * //background:     $base_bg
+ * border:         none
+ * border-radius:  0
+ * box-shadow:     none
+ * font-size:      10px
+ * outline:        none
+ * padding:        0 4px
+ * text-shadow:    none */
+#icon_button {
+  font-family: "Material Icons";
+  font-size: 16px;
+  padding: 0 4px; }
+
+#editor-component {
+  background: #263238;
+  color: #EEE; }
+  #editor-component GtkHeaderBar {
+    background: #1c2429;
+    border-bottom: none;
+    padding: 4px; }
+  #editor-component GtkSourceView {
+    font-family: "Ubuntu Mono";
+    font-size: 11.5px; }

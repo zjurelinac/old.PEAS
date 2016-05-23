@@ -1,0 +1,8 @@
+	ORG 0
+	MOVE 10000, SP
+	ADD R0, 1, R0
+    MOVE ADDR, R1
+    LOAD R1, (ADDR)
+	HALT
+
+ADDR DW 1

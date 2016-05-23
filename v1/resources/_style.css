@@ -1,0 +1,56 @@
+GtkHeaderBar{
+    background           :     #DE002D;/*linear-gradient( #eee, #ddd );*/
+    border-bottom:          none;
+}
+
+GtkButton{
+    background:     #444;
+    border:         1px solid #222;
+    border-bottom:  3px solid #222;
+    border-radius:  4px;
+    box-shadow:     none;
+    color:          #fff;
+    outline:        none;
+    text-shadow:    none;
+}
+
+GtkButton:hover{
+    background:     #4f4f4f;
+}
+
+GtkButton:active{
+    border-bottom: 1px solid #222;
+    padding-top:     2px
+}  
+
+GtkStackSwitcher GtkButton{
+    border-radius:  0;
+}
+
+#editor-component{
+    background           :     #333;
+}
+
+#editor-component GtkHeaderBar{
+    background           :     #222;
+    border-radius        :     0;
+}
+
+#editor-component GtkSeparatorToolItem{
+    border-right         :     1px solid rgba( 0, 0, 0, 0.25 );
+}
+
+#editor-component GtkSourceView{
+    /*background           :     #333;
+    color                :     #fff;*/
+    font-family          :     "Ubuntu Mono";
+    font-size            :     12px;
+}
+
+#editor-component GtkSourceViewGutter{
+    background           :     #555;
+}
+
+#editor-component GtkSourceView:selected{
+    background           :     #777;
+}

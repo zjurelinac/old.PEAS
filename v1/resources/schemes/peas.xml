@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<style-scheme id="peas" _name="PEAS Custom Scheme" version="1.0">
+
+	<author>John Doe</author>
+	<_description>Lorem ipsum</_description>
+
+	<style name="text"                        foreground="#CDD3DE" background="#263238"/>
+	<style name="selection"                   foreground="#fff" background="#80CBC4"/>
+	<style name="cursor"                      foreground="#fff"/>
+	<style name="current-line"                background="#263238"/>
+	<style name="line-numbers"                foreground="#999" background="#233034"/>
+	<style name="draw-spaces"                 foreground="#444"/>
+	
+	<style name="def:comment"                 foreground="#9E9E9E" italic="false" bold="false"/>
+  	<style name="def:keyword"                 foreground="#FF5D38"/>
+  	<style name="def:type"                    foreground="#26A6A6"/>
+    <style name="def:operator"                foreground="#26A6A6"/>
+  	<style name="def:constant"                foreground="#26A6A6"/>
+  	<style name="def:decimal"                 foreground="#BCD42A"/>
+
+</style-scheme>

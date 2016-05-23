@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<language id="frisc" _name="FRISC" version="2.0" _section="Sources">
+	<metadata>
+		<property name="mimetypes">text/plain;application/x-archive</property>
+		<property name="globs">*.a;*.asm;*.p</property>
+  	</metadata>
+
+	<styles>
+		<style id="comment"           _name="Comment"               map-to="def:comment"/>
+		<style id="common-defines"    _name="Common Defines"        map-to="def:constant"/>
+		<style id="keyword"           _name="Keyword"               map-to="def:keyword"/>
+		<style id="operator"          _name="Operator"              map-to="def:operator"/>
+		<style id="type"              _name="Data Type"             map-to="def:type"/>
+		<style id="decimal"           _name="Decimal number"        map-to="def:decimal"/>
+		<style id="octal"             _name="Octal number"          map-to="def:decimal"/>
+		<style id="hexadecimal"       _name="Hexadecimal number"    map-to="def:decimal"/>
+	</styles>
+
+	<definitions>
+
+		<define-regex id="flag">_(N?(C|Z|V|N)|M|P|EQ|NE|(S|U)(GT|GE|LT|LE))</define-regex>
+
+		<context id="hexadecimal" style-ref="hexadecimal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    0[a-fA-F0-9]+
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<context id="octal" style-ref="octal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    0[0-7]+
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<context id="decimal" style-ref="decimal">
+		  <match extended="true">
+		    (?&lt;![\w\.])
+		    (0|[1-9][0-9]*)
+		    (?![\w\.])
+		  </match>
+		</context>
+
+		<!-- Real FRISC stuff -->
+		<context id="frisc-comment" style-ref="comment" end-at-line-end="true">
+			<start>;</start>
+			<end>\n</end>
+		</context>
+
+		<context id="keywords" style-ref="keyword">
+			<keyword>ADD</keyword>
+			<keyword>AND</keyword>
+			<keyword>OR</keyword>
+			<keyword>XOR</keyword>
+			<keyword>SUB</keyword>
+			<keyword>ADC</keyword>
+			<keyword>SBC</keyword>
+			<keyword>SHL</keyword>
+			<keyword>SHR</keyword>
+			<keyword>ASHR</keyword>
+			<keyword>ROTL</keyword>
+			<keyword>ROTR</keyword>
+			<keyword>CMP</keyword>
+			<keyword>MOVE</keyword>
+			<keyword>LOAD(B|H)?</keyword>
+			<keyword>STORE(B|H)?</keyword>
+			<keyword>PUSH</keyword>
+			<keyword>POP</keyword>
+			<keyword>JP\%{flag}?</keyword>
+			<keyword>JR\%{flag}?</keyword>
+			<keyword>CALL\%{flag}?</keyword>
+			<keyword>RET(I|N)?\%{flag}?</keyword>
+			<keyword>HALT\%{flag}?</keyword>
+		</context>
+
+
+		<context id="types" style-ref="type">
+		  	<keyword>ORG</keyword>
+		  	<keyword>EQU</keyword>
+		  	<keyword>D(S|B|H|W)</keyword>
+		</context>
+
+		<context id="operators" style-ref="operator">
+			<keyword>\%(D|H|B|O)</keyword>
+		</context>
+
+		<context id="common-defines" style-ref="common-defines">
+			<keyword>R[0-7]</keyword>
+			<keyword>SP</keyword>
+			<keyword>SR</keyword>
+		</context>
+
+		<!--Main context-->
+		<context id="frisc" class="no-spell-check">
+		  <include>
+		    <context ref="frisc-comment"/>
+		    <context ref="hexadecimal"/>
+		    <context ref="octal"/>
+		    <context ref="decimal"/>
+		    <context ref="keywords"/>
+		    <context ref="operators"/>
+		    <context ref="types"/>
+		    <context ref="common-defines"/>
+		  </include>
+		</context>
+
+  	</definitions>
+</language>

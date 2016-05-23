@@ -21,6 +21,7 @@
     - **console_comp.py** - Message console component
     - **settings_comp.py** - Settings display components
     - **about_dialog.py** - Custom about dialog
+    - **symbol_table_comp.py** - A symbol table / debugger component
 - **config/** - Various definition files and app settings
 - **resources/** - Styles and images, *perhaps a stylesheet for every component?*
     - **default.css** - Default stylesheet

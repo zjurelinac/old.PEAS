@@ -1,0 +1,168 @@
+// BG colors
+
+$base_bg:           #263238
+$darker_bg:         darken($base_bg, 5%)
+$lighter_bg:        #414141
+
+// Material palette
+
+$red:               #F44336
+$red_dark:          #D32F2F
+$red_light:         #FFCDD2
+$red_accent:        #FF5252
+
+$pink:              #E91E63
+$pink_dark:         #C2185B
+$pink_light:        #F8BBD0
+$pink_accent:       #FF4081
+
+$purple:            #9C27B0
+$purple_dark:       #7B1FA2
+$purple_light:      #E1BEE7
+$purple_accent:     #E040FB
+
+$deep_purple:       #673AB7
+$deep_purple_dark:  #512DA8
+$deep_purple_ligh:  #D1C4E9
+$deep_purple_accent:#7C4DFF
+
+$indigo:            #3F51B5
+$indigo_dark:       #303F9F
+$indigo_light:      #C5CAE9
+$indigo_accent:     #536DFE
+
+$blue:              #2196F3
+$blue_dark:         #1976D2
+$blue_light:        #BBDEFB
+$blue_accent:       #448AFF
+
+$light_blue:        #03A9F4       
+$light_blue_dark:   #0288D1  
+$light_blue_light:  #B3E5FC
+$light_blue_accent: #03A9F4    
+
+$cyan:              #00BCD4
+$cyan_dark:         #0097A7 
+$cyan_light:        #B2EBF2
+$cyan_accent:       #00BCD4
+
+$teal:              #009688
+$teal_dark:         #00796B
+$teal_light:        #B2DFDB
+$teal_accent:       #009688   
+
+$green:             #4CAF50
+$green_dark:        #388E3C
+$green_light:       #C8E6C9
+$green_accent:      #4CAF50
+
+$light_green:       #8BC34A
+$light_green_dark:  #689F38
+$light_green_light: #DCEDC8
+$light_green_accent:#8BC34A
+
+$lime:              #CDDC39
+$lime_dark:         #AFB42B
+$lime_light:        #F0F4C3
+$lime_accent:       #CDDC39
+
+$yellow:            #FFEB3B
+$yellow_dark:       #FBC02D
+$yellow_light:      #FFF9C4
+$yellow_accent:     #FFEB3B
+
+$amber:             #FFC107
+$amber_dark:        #FFA000
+$amber_light:       #FFECB3
+$amber_accent:      #FFC107
+
+$orange:            #FF9800
+$orange_dark:       #F57C00
+$orange_light:      #FFE0B2
+$orange_accent:     #FF9800
+
+$deep_orange:       #FF5722
+$deep_orange_dark:  #E64A19
+$deep_orange_light: #FFCCBC
+$deep_orange_accent:#FF5722
+
+$brown:             #795548
+$brown_dark:        #5D4037
+$brown_light:       #D7CCC8
+$brown_accent:      #795548
+
+$grey:              #9E9E9E
+$grey_dark:         #616161
+$grey_light:        #F5F5F5
+$grey_accent:       #9E9E9E
+
+$blue_grey:         #607D8B
+$blue_grey_dark:    #455A64
+$blue_grey_light:   #CFD8DC
+$blue_grey_accent:  #607D8B
+
+// FG colors
+
+$base_fg:           #EEE
+$lighter_fg:        #FFF
+$darker_fg:         #CCC
+
+$ui_font:           sans
+$icon_font:         "Material Icons"
+
+#application-window
+    font-family:    $ui_font
+
+GtkHeaderBar
+    background:     $deep_orange
+    border-radius:  0
+    border-bottom:  none //2px solid $teal_dark
+    padding:        12px
+
+GtkStackSwitcher GtkButton
+    border:         none
+    border-radius:  0
+    box-shadow:     none
+    font-size:      10px
+    outline:        none
+    padding:        0 4px
+    text-shadow:    none
+    background:     $deep_orange_accent
+    //border-right:   1px solid #222
+    border-radius:  0
+    font-family:    $ui_font
+    font-size:      9px
+    color:          #fff
+    padding:        8px 8px
+
+    &:active
+        background:     $red_dark
+        font-weight:    bold
+
+/* GtkButton
+    //background:     $base_bg
+    border:         none
+    border-radius:  0
+    box-shadow:     none
+    font-size:      10px
+    outline:        none
+    padding:        0 4px
+    text-shadow:    none */
+
+#icon_button
+    font-family:    $icon_font
+    font-size:      16px
+    padding:        0 4px
+
+#editor-component
+    background:     $base_bg
+    color:          $base_fg
+
+    GtkHeaderBar
+        background:     $darker_bg
+        border-bottom:  none
+        padding:        4px
+
+    GtkSourceView
+        font-family:    "Ubuntu Mono"
+        font-size:      11.5px
