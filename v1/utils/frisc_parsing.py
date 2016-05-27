@@ -77,7 +77,10 @@ class Label(Token):
     pattern = '[A-Za-z_][A-Za-z0-9_]*'
 
     def encode(self, constants=None, line_number=None, **kwargs):
-        return str(BinaryNumber(constants[self.contents], 20))
+        b = BinaryNumber(constants[self.contents], 32)
+        if len(list(filter(lambda x: x != b[0], b[1:12]))) != 0:
+            raise ValueError('Constant cannot fit into 20 bits immediate.')
+        return ''.join(b[12:])
 
 
 class Constant(Or):

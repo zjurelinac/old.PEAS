@@ -21,6 +21,7 @@ class FRISCAssembler(Assembler):
         with open(file_name, 'r') as file:
 
             current_line_number = 0
+            next_line_number = 0
             file_line_number = 1
             preprocessed_lines = []
 
@@ -90,11 +91,12 @@ class FRISCAssembler(Assembler):
 
                     if not line['empty']:
                         line_number = Binary32(line['line_number']).to_hex_string()
-                        encoded = line['instruction'].encode(constants, line['line_number'])
                         try:
+                            encoded = line['instruction'].encode(constants, line['line_number'])
                             machine_code = [cls._rearrange(Binary32.from_digits(list(enc)).to_pretty_hex_string()) for enc in encoded]
                         except Exception as e:
                             print(line)
+                            print(constants)
                             raise e
                     else:
                         line_number = ''
