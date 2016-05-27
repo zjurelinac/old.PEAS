@@ -12,7 +12,8 @@ class Item(metaclass=ABCMeta):
     Call method expects a list of arguments, and upon successful parsing
     should return ( Item, remains ), but if it fails, raise a SyntaxError"""
     @abstractmethod
-    def __call__(self, arg_list): pass
+    def __call__(self, arg_list):
+        pass
 
     def __str__(self):
         return self.__class__.__name__

@@ -1,0 +1,17 @@
+LED_ADDR    EQU     0FFF80000
+SW_ADDR     EQU     0FFF81000
+
+            ORG 0
+            MOVE 011, R0
+            MOVE 0AA, R2
+            STORE R0, (LED_ADDR)
+            ADD R0, 11, R0
+            STORE R0, (LED_ADDR)
+            ADD R0, 11, R0
+            STORE R2, (3000)
+            STORE R0, (LED_ADDR)
+            ADD R0, 11, R0
+            LOAD R1, (3000)
+            STORE R0, (LED_ADDR)
+            STORE R1, (LED_ADDR)
+            HALT

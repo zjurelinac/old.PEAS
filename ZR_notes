@@ -1,0 +1,10 @@
+Notes
+------
+
+- FRISC fetch/execute wait fix
+- Prekasno postavljanje wait i podataka u automatu stanja
+- Dodano novo stanje za provjeru READY i VALID
+- Promjena verzije ploče
+- Problemi sa signalima na sklopovlju
+- Random wait signal koji generira memorija
+- Postavljanje adresa
